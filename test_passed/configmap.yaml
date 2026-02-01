@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: elastic-system
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    xpack.monitoring.enabled: false
+
+  pipelines.yml: |
+    - pipeline.id: main
+      path.config: "/usr/share/logstash/pipeline/main.conf"
+
+  main.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["https://siemply-secure-es-http:9200"]
+        user => "elastic"
+        password => "${ES_PASSWORD}"
+        ssl => true
+        cacert => "/usr/share/logstash/certs/ca.crt"
+        index => "log_swipe-%{+YYYY.MM.dd}"
+      }
+    }

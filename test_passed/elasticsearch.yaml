@@ -1,0 +1,62 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: siemply-secure
+  namespace: elastic-system
+spec:
+  version: 9.2.4
+
+  http:
+    service:
+      spec:
+        type: ClusterIP
+    tls:
+      selfSignedCertificate:
+        disabled: false   # enable TLS (default, can even omit this block)
+
+  nodeSets:
+    - name: siem-nodes
+      count: 2
+      config:
+        node.roles: ["master", "data", "ingest", "ml", "remote_cluster_client"]
+        node.store.allow_mmap: false
+
+      podTemplate:
+        metadata:
+          labels:
+            environment: poc
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  memory: 2Gi
+                  cpu: "500m"
+                limits:
+                  memory: 2Gi
+                  cpu: "1"
+              env:
+                - name: ES_JAVA_OPTS
+                  value: "-Xms1g -Xmx1g"
+
+          initContainers:
+            - name: install-plugins
+              image: docker.elastic.co/elasticsearch/elasticsearch:9.2.4
+              command:
+                - sh
+                - -c
+                - |
+                  bin/elasticsearch-plugin install --batch repository-azure && \
+                  bin/elasticsearch-plugin install --batch analysis-icu
+
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 20Gi
+            storageClassName: managed-csi
+
+

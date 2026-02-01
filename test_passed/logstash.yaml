@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash-siemply-secure
+  namespace: elastic-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:9.2.4
+        imagePullPolicy: IfNotPresent
+        args: ["--config.reload.automatic"]
+
+        env:
+        - name: ES_HOSTS
+          value: "https://siemply-secure-es-http.elastic-system.svc:9200"
+        - name: ES_USERNAME
+          value: "elastic"
+        - name: ES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: siemply-secure-es-elastic-user
+              key: elastic
+
+        ports:
+        - name: api
+          containerPort: 9600
+        - name: beats
+          containerPort: 5044
+
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "150m"
+
+        volumeMounts:
+        - name: logstash-config
+          mountPath: /usr/share/logstash/pipeline/main.conf
+          subPath: main.conf
+        - name: es-ca
+          mountPath: /usr/share/logstash/certs
+          readOnly: true
+
+
+      volumes:
+      - name: logstash-config
+        configMap:
+          name: logstash-config
+      - name: es-ca
+        secret:
+          secretName: siemply-secure-es-http-certs-public

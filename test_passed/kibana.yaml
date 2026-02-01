@@ -1,0 +1,31 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-siemply-secure
+  namespace: elastic-system
+spec:
+  version: 9.2.4
+  count: 1
+
+  elasticsearchRef:
+    name: siemply-secure
+
+  http:
+    service:
+      spec:
+        type: ClusterIP      # 🔒 internal only
+    tls:
+      selfSignedCertificate:
+        disabled: true     # 🔐 ECK-managed TLS
+
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          resources:
+            limits:
+              memory: 1Gi
+              cpu: "200m"
+            requests:
+              memory: 512Mi
+              cpu: "150m" 
