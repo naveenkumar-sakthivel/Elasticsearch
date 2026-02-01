@@ -1,0 +1,58 @@
+name: Deploy ELK to AKS
+
+on:
+   push: 
+     branches:
+       - main
+   workflow_dispatch:
+
+env:
+  NAMESPACE: elastic-system
+  HELM_RELEASE: ELK
+  HELM_CHART_PATH: helm/elk
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+       id-token: write
+       contents: read
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{secrets.AZURE_CLIENT_ID}}
+          tenant-id: ${{secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{secrets.AKS_RESOURCE_GROUP}}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Create Namespace (If not exists)
+        run: |
+           kubectl create ns $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy ELK using Helm
+        run: | 
+           helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH \
+           --namespace $NAMESPACE \
+           --values $HELM_CHART_PATH/values.yaml \
+           --set elasticsearch.auth.elasticPassword=${{secrets.ELASTIC_PASSWORD}}
+
+
+
+
+
+      
+  
