@@ -1,0 +1,33 @@
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: kibana-{{.Values.name}}
+  namespace: {{ .Values.namespace }}
+  labels:
+    environment: {{ .Values.environment | default "prod" }}
+spec:
+  version: {{.Values.kibana.version }}
+  count: {{ .Values.kibana.replicas }}
+
+  elasticsearchRef:
+    name: {{ .Values.name }}
+
+  http:
+    service:
+      spec:
+        type: {{ .Values.kibana.service.type }}     #  internal only
+    tls:
+      selfSignedCertificate:
+        disabled: true     # ECK-managed TLS
+
+  podTemplate:
+    spec:
+      containers:
+        - name: kibana
+          resources:
+            requests:
+              memory: {{ .Values.kibana.resources.requests.memory }}
+              cpu: {{ .Values.kibana.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.kibana.resources.limits.memory }}
+              cpu: {{ .Values.kibana.resources.limits.cpu }}

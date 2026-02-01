@@ -1,0 +1,65 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    environment: {{ .Values.environment | default "prod" }}
+spec:
+  version: {{ .Values.elasticsearch.version }}
+
+  http:
+    service:
+      spec:
+        type: ClusterIP
+    tls:
+      selfSignedCertificate:
+        disabled: false   # enable TLS (default, can even omit this block)
+
+  nodeSets:
+    - name: siem-nodes
+      count: {{ .Values.elasticsearch.replicas }}
+      config:
+        node.roles: ["master", "data", "ingest", "ml", "remote_cluster_client"]
+        node.store.allow_mmap: false
+
+      podTemplate:
+        metadata:
+          labels:
+            environment: poc
+        spec:
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  memory: {{ .Values.elasticsearch.resources.requests.memory }}
+                  cpu: {{ .Values.elasticsearch.resources.requests.cpu }}
+                limits:
+                  memory: {{ .Values.elasticsearch.resources.limits.memory }}
+                  cpu: {{ .Values.elasticsearch.resources.limits.cpu }}
+              env: 
+                - name: ES_JAVA_OPTS
+                  value: {{ .Values.elasticsearch.javaOpts | quote }}
+
+          initContainers:
+            - name: install-plugins
+              image: {{ .Values.elasticsearch.image.repository }}:{{ .Values.elasticsearch.image.tag }}
+              imagePullPolicy: {{ .Values.elasticsearch.image.pullPolicy }}
+              command:
+                - sh
+                - -c
+                - |
+                  bin/elasticsearch-plugin install --batch repository-azure && \
+                  bin/elasticsearch-plugin install --batch analysis-icu
+
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: {{ .Values.elasticsearch.storage }}
+            storageClassName: {{ .Values.elasticsearch.storageClass }}
+
+
