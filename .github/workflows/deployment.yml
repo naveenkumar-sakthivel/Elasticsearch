@@ -47,8 +47,7 @@ jobs:
         run: | 
            helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH \
            --namespace $NAMESPACE \
-           --values $HELM_CHART_PATH/values.yaml \
-           --set elasticsearch.auth.elasticPassword=${{secrets.ELASTIC_PASSWORD}}
+           --values $HELM_CHART_PATH/values.yaml 
 
 
 
