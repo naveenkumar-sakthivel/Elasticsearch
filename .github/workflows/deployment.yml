@@ -14,6 +14,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: dev
 
     permissions:
        id-token: write
@@ -23,31 +24,32 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v4
         
-      - name: Azure login (OIDC)
+      - name: Azure login 
         uses: azure/login@v2
         with:
-          client-id: ${{secrets.AZURE_CLIENT_ID}}
-          tenant-id: ${{secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set AKS context
         uses: azure/aks-set-context@v4
         with:
-          resource-group: ${{secrets.AKS_RESOURCE_GROUP}}
-          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+          resource-group: snk
+          cluster-name: snk-helm
 
       - name: Install Helm
         uses: azure/setup-helm@v4
 
       - name: Create Namespace (If not exists)
         run: |
-           kubectl create ns $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+           kubectl create namespace elastic-system || true
 
       - name: Deploy ELK using Helm
         run: | 
-           helm upgrade --install $HELM_RELEASE $HELM_CHART_PATH \
-           --namespace $NAMESPACE \
-           --values $HELM_CHART_PATH/values.yaml 
+           helm install eck-operator elastic/eck-operator \
+           --namespace elastic-system \
+           --set installCRDs=true
+
+
+
 
 
 
