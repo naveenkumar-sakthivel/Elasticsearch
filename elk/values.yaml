@@ -1,0 +1,40 @@
+name: siemply-secure
+namespace: elastic-system
+environment: poc
+# Default values for elk.
+# This is a YAML-formatted file.
+
+elasticsearch:
+  version: 9.2.4
+
+  image:
+    repository: docker.elastic.co/elasticsearch/elasticsearch
+    tag: "9.2.4"
+    pullPolicy: IfNotPresent
+
+  replicas: 2
+  storage: 20Gi
+  storageClass: managed-csi
+
+  javaOpts: "-Xms2g -Xmx2g"
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "1"
+      memory: "4Gi"
+
+
+
+kibana:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "300m"
+      memory: "1Gi"
+
