@@ -11,7 +11,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Secret length check
-        run: echo "Length=${#${{ secrets.AZURE_CREDENTIALS }}}"
+        env:
+          AZ_CREDS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          if [ -z "$AZ_CREDS" ]; then
+            echo "AZURE_CREDENTIALS is EMPTY"
+            exit 1
+          else
+            echo "AZURE_CREDENTIALS is PRESENT (length=${#AZ_CREDS})"
+          fi
       - name: Azure Login
         uses: azure/login@v1
         with:
