@@ -38,7 +38,7 @@ jobs:
       - name: Check if Helm release exists
         id: helm_check
         run: |
-          if helm status elasticsearch -n elastic-system > /dev/null 2>&1; then
+          if helm status eck-operator -n elastic-system > /dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
