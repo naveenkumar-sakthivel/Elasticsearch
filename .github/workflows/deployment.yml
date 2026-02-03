@@ -6,10 +6,6 @@ on:
        - main
    workflow_dispatch:
 
-env:
-  NAMESPACE: elastic-system
-  HELM_RELEASE: ELK
-  HELM_CHART_PATH: helm/elk
 
 jobs:
   deploy:
