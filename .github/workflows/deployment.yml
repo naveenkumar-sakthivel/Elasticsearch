@@ -1,9 +1,6 @@
 name: Deploy ELK to AKS
 
 on:
-   push: 
-     branches:
-       - main
    workflow_dispatch:
 
 
@@ -37,15 +34,30 @@ jobs:
       - name: Create Namespace (If not exists)
         run: |
            kubectl create namespace elastic-system || true
-      - name: Fetch Helm Repo
-        run: | 
-           helm repo add elastic https://helm.elastic.co
-           helm repo update
-      - name: Deploy ELK using Helm
-        run: | 
-           helm install eck-operator elastic/eck-operator \
+      # To check the helm charts is available or not?
+      - name: Check if Helm release exists
+        id: helm_check
+        run: |
+          if helm status elasticsearch -n elastic-system > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Install Elasticsearch Helm chart
+        if: steps.helm_check.outputs.exists == 'false'
+        run: |
+          helm repo add elastic https://helm.elastic.co
+          helm repo update
+          helm install eck-operator elastic/eck-operator \
            --namespace elastic-system \
            --set installCRDs=true
+           
+      - name: Fetch Helm Repo list
+        run: | 
+           helm repo ls
+      - name: List Helm charts
+        run: | 
+           helm ls -A
 
 
 
