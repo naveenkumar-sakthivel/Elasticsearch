@@ -37,6 +37,10 @@ jobs:
       - name: Create Namespace (If not exists)
         run: |
            kubectl create namespace elastic-system || true
+      - name: Fetch Helm Repo
+        run: | 
+           helm repo add elastic https://helm.elastic.co
+           helm repo update
 
       - name: Deploy ELK using Helm
         run: | 
