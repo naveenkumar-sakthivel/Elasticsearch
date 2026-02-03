@@ -43,10 +43,6 @@ jobs:
            helm repo update
       - name: Deploy ELK using Helm
         run: | 
-           helm uninstall eck-operator elastic/eck-operator \
-           --namespace elastic-system 
-      - name: Deploy ELK using Helm
-        run: | 
            helm install eck-operator elastic/eck-operator \
            --namespace elastic-system \
            --set installCRDs=true
