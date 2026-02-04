@@ -48,7 +48,7 @@ jobs:
       - name: Validate Helm release
         run: | 
            pwd
-           helm lint Elasticsearch/elk/
+           helm lint ./elk/
 # To create a custom helm chart for our release           
       - name: Install Custom Helm chart
         run: | 
