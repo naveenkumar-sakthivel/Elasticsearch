@@ -3,4 +3,5 @@ name: elk
 description: ELK stack on AKS using ECK + Traefik
 type: application
 version: 0.1.0
+
 appVersion: "9.2.4"
