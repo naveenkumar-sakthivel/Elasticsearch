@@ -16,39 +16,47 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
-        
+
+# Azure login/validation        
       - name: Azure login 
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+# Select the clusters from resource group
       - name: Set AKS context
         uses: azure/aks-set-context@v4
         with:
           resource-group: snk
           cluster-name: snk-helm
-
+# Install helm in the environment
       - name: Install Helm
         uses: azure/setup-helm@v4
 
       - name: Create Namespace (If not exists)
         run: |
            kubectl create namespace elastic-system || true
-      # To check the helm charts is available or not?
-      - name: Check if Helm release exists
+# To check the helm charts is available or not?
+      - name: Check and update Helm release (ECK-Operator)
         run: |
           helm repo add elastic https://helm.elastic.co
           helm repo update
           helm upgrade --install eck-operator elastic/eck-operator \
            --namespace elastic-system \
            --set installCRDs=true
-           
-      - name: Fetch Helm Repo list
+# To validate the Helm chart release
+      - name: Validate Helm release
         run: | 
-           helm repo ls
+           helm lint ./elk/
+# To create a custom helm chart for our release           
+      - name: Install Custom Helm chart
+        run: | 
+           helm upgrade --install elasticsearh ./elk/ --values=./elk/values.yaml
+# Validate the helm resources
       - name: List Helm charts
         run: | 
            helm ls -A
+           kubectl get all -n elastic-system
 
 
 
