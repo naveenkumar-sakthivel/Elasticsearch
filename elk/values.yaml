@@ -31,6 +31,8 @@ elasticsearch:
 kibana:
   replicas: 1
   version: 9.2.4
+  service:
+    type: ClusterIP
   resources:
     requests:
       cpu: "100m"
@@ -38,5 +40,6 @@ kibana:
     limits:
       cpu: "300m"
       memory: "1Gi"
+
 
 
