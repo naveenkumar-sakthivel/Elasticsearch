@@ -30,6 +30,7 @@ elasticsearch:
 
 kibana:
   replicas: 1
+  version: 9.2.4
   resources:
     requests:
       cpu: "100m"
@@ -37,4 +38,5 @@ kibana:
     limits:
       cpu: "300m"
       memory: "1Gi"
+
 
