@@ -2,6 +2,11 @@ name: Azure Login Test
 
 on:
   workflow_dispatch:
+    inputs:
+      dashboard_triggered_by:
+        description: "User who triggered from dashboard"
+        required: false
+        default: "manual"
 
 jobs:
   login:
